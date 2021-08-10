@@ -37,11 +37,9 @@ workers = 1  # for data-loading; right now, only 1 works with h5py
 encoder_lr = 1e-4  # learning rate for encoder if fine-tuning
 decoder_lr = 4e-4  # learning rate for decoder
 grad_clip = 5.  # clip gradients at an absolute value of
-alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 best_bleu1, best_bleu2, best_bleu3, best_bleu4 = 0.,0.,0.,0.  # BLEU scores right now
 guiding_bleu= 1 # 1: BLEU 1, 2: BLEU-2, 3: BLEU-3, 4: BLEU4 #THE BLEU METRIC USED TO GUIDE THE PROCESS
 print_freq = 1000  # print training/validation stats every __ batches
-fine_tune_encoder = False  # fine-tune encoder?
 checkpoint = None # path to checkpoint, None if none
 encoder_dim=4096  
 
@@ -70,8 +68,7 @@ def main():
                                        encoder_dim=encoder_dim,
                                        dropout=dropout)
 
-        decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
-                                             lr=decoder_lr)
+        decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()), lr=decoder_lr)
         encoder = Encoder()
         encoder_optimizer = None
 
@@ -115,8 +112,6 @@ def main():
             break
         if epochs_since_improvement > 0 and epochs_since_improvement % 2 == 0:
             adjust_learning_rate(decoder_optimizer, 0.95)
-            if fine_tune_encoder:
-                adjust_learning_rate(encoder_optimizer, 0.9)
 
         train(train_loader=train_loader,
               encoder=encoder,
