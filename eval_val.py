@@ -30,10 +30,8 @@ def evaluate(loader, encoder, decoder, criterion, word_map, device):
 
     image_names = list()
 
-    print("Evaluating on validation set...")
-
     for i, (image, caps, caplens, allcaps, image_name) in enumerate(
-            tqdm(loader, desc="EVALUATING WITHOUT Teacher Forcing")):
+            tqdm(loader, desc="EVALUATING ON VALIDATION SET")):
 
         k = beam_size
         image = image.to(device)  # (1, 3, 256, 256)
@@ -42,11 +40,11 @@ def evaluate(loader, encoder, decoder, criterion, word_map, device):
         encoder_dim = encoder_out.size(-1)
         encoder_out = encoder_out.view(1, encoder_dim)  
         encoder_out = encoder_out.expand(k, encoder_dim)  
-        k_prev_words = torch.LongTensor([[word_map['<start>']]] * k).to(device)  # (k, 1)
+        k_prev_words = torch.LongTensor([[word_map['<start>']]] * k).to(device) 
 
-        seqs = k_prev_words  # (k, 1)
+        seqs = k_prev_words 
 
-        top_k_scores = torch.zeros(k, 1).to(device)  # (k, 1)
+        top_k_scores = torch.zeros(k, 1).to(device) 
 
         complete_seqs = list()
         complete_seqs_scores = list()
