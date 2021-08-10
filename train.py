@@ -68,7 +68,7 @@ def main():
                                        decoder_dim=decoder_dim,
                                        vocab_size=len(word_map),
                                        encoder_dim=encoder_dim,
-                                       dropout=dropout, choice=choice)
+                                       dropout=dropout)
 
         decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
                                              lr=decoder_lr)
@@ -93,11 +93,10 @@ def main():
     decoder = decoder.to(device)
     encoder = encoder.to(device)    
     criterion = nn.CrossEntropyLoss().to(device)
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
     train_loader = torch.utils.data.DataLoader(
-        CaptionDataset(data_folder, data_name, 'TRAIN', transform=transforms.Compose(transforms_list + [normalize])),
+        CaptionDataset(data_folder, data_name, 'TRAIN', transform=transforms.Compose([normalize])),
         batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)    
 
     val_loader = torch.utils.data.DataLoader(
@@ -112,7 +111,7 @@ def main():
     # Epochs
     for epoch in range(start_epoch, epochs):
 
-        if epochs_since_improvement == 8:
+        if epochs_since_improvement == 4:
             break
         if epochs_since_improvement > 0 and epochs_since_improvement % 2 == 0:
             adjust_learning_rate(decoder_optimizer, 0.95)
@@ -153,14 +152,6 @@ def main():
         
         bleu_list=[recent_bleu1,recent_bleu2,recent_bleu3,recent_bleu4]
 
-        # Save validation set loss for each epoch in the file
-        with open('validation_logs.txt', 'a') as vl:
-            if epoch == 0:
-                vl.write('\n\nThe dataset is {}. \nThe BLEU scores for epoch {} are {}.\n'.format(data_name,epoch,bleu_list))
-            else:
-                vl.write('The BLEU scores for epoch {} are {}.\n'.format(epoch, bleu_list))
-
-        # Save checkpoint
         save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder, encoder_optimizer,
                         decoder_optimizer, bleu_list, is_best)
 
